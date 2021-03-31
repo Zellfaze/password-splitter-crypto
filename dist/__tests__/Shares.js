@@ -13,25 +13,29 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 describe("UShare", function () {
   var shareStarter = {
     id: 1,
+    dbid: "9c9b8361-10e9-4ffc-ab85-93c88a696e5e",
     data: "801649ec44b6e582da82be0c281d8bc9708",
     bits: 8
   };
   var shareStarter2 = {
     id: 2,
+    dbid: "b38dfa1f-6229-4fd7-b258-91dc74e74259",
     data: "802c8219596dcb05a4e5641998aadca338c",
     bits: 8
   };
-  var shareJSON1 = '{"id":1,"data":"801649ec44b6e582da82be0c281d8bc9708","bits":8,"type":"plain"}';
-  var shareJSON2 = '{"id":1,"data":"802c8219596dcb05a4e5641998aadca338c","bits":8,"type":"plain"}';
+  var shareJSON1 = '{"id":1,"dbid":"9c9b8361-10e9-4ffc-ab85-93c88a696e5e","data":"801649ec44b6e582da82be0c281d8bc9708","bits":8,"type":"plain"}';
+  var shareJSON2 = '{"id":1,"dbid":"b38dfa1f-6229-4fd7-b258-91dc74e74259","data":"802c8219596dcb05a4e5641998aadca338c","bits":8,"type":"plain"}';
   test('creating from data works', function () {
     var ushare = new _Shares["default"].UShare(shareStarter);
     expect(ushare.id).toBe(1);
+    expect(ushare.dbid).toBe("9c9b8361-10e9-4ffc-ab85-93c88a696e5e");
     expect(ushare.data).toBe("801649ec44b6e582da82be0c281d8bc9708");
     expect(ushare.bits).toBe(8);
   });
   test('creating from JSON works', function () {
     var ushare = new _Shares["default"].UShare(shareJSON1);
     expect(ushare.id).toBe(1);
+    expect(ushare.dbid).toBe("9c9b8361-10e9-4ffc-ab85-93c88a696e5e");
     expect(ushare.data).toBe("801649ec44b6e582da82be0c281d8bc9708");
     expect(ushare.bits).toBe(8);
   });
@@ -60,6 +64,7 @@ describe("UShare", function () {
             eshare = _context.sent;
             expect(eshare).toMatchObject({
               id: expect.anything(),
+              dbid: expect.anything(),
               username: expect.anything(),
               bits: expect.anything(),
               data: expect.anything(),
@@ -67,12 +72,13 @@ describe("UShare", function () {
               iv: expect.anything()
             });
             expect(eshare.id).toBe(1);
+            expect(eshare.dbid).toBe("9c9b8361-10e9-4ffc-ab85-93c88a696e5e");
             expect(eshare.username).toBe("user1");
             expect(eshare.bits).toBe(8);
             expect(eshare.data).toBe("encrypteddata");
             expect(eshare.iv).toBe("aaaaaaaaa");
 
-          case 11:
+          case 12:
           case "end":
             return _context.stop();
         }
@@ -99,17 +105,19 @@ describe("UShare", function () {
             ishare = _context2.sent;
             expect(ishare).toMatchObject({
               id: expect.anything(),
+              dbid: expect.anything(),
               bits: expect.anything(),
               data: expect.anything(),
               salt: expect.anything(),
               iv: expect.anything()
             });
             expect(ishare.id).toBe(1);
+            expect(ishare.dbid).toBe("9c9b8361-10e9-4ffc-ab85-93c88a696e5e");
             expect(ishare.bits).toBe(8);
             expect(ishare.data).toBe("encrypteddata");
             expect(ishare.iv).toBe("aaaaaaaaa");
 
-          case 10:
+          case 11:
           case "end":
             return _context2.stop();
         }
@@ -120,15 +128,17 @@ describe("UShare", function () {
 describe("IShare", function () {
   var shareStarter = {
     id: 1,
+    dbid: "9c9b8361-10e9-4ffc-ab85-93c88a696e5e",
     data: "encrypteddata",
     bits: 8,
     salt: "abcdef",
     iv: "aaaaaaaaa"
   };
-  var shareJSON = '{"id":1,"data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","type":"invite"}';
+  var shareJSON = '{"id":1,"dbid":"9c9b8361-10e9-4ffc-ab85-93c88a696e5e","data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","type":"invite"}';
   test('creating from data works', function () {
     var ishare = new _Shares["default"].IShare(shareStarter);
     expect(ishare.id).toBe(1);
+    expect(ishare.dbid).toBe("9c9b8361-10e9-4ffc-ab85-93c88a696e5e");
     expect(ishare.data).toBe("encrypteddata");
     expect(ishare.bits).toBe(8);
     expect(ishare.salt).toBe("abcdef");
@@ -137,6 +147,7 @@ describe("IShare", function () {
   test('creating from JSON works', function () {
     var ishare = new _Shares["default"].IShare(shareJSON);
     expect(ishare.id).toBe(1);
+    expect(ishare.dbid).toBe("9c9b8361-10e9-4ffc-ab85-93c88a696e5e");
     expect(ishare.data).toBe("encrypteddata");
     expect(ishare.bits).toBe(8);
     expect(ishare.salt).toBe("abcdef");
@@ -170,6 +181,7 @@ describe("IShare", function () {
             eshare = _context3.sent;
             expect(eshare).toMatchObject({
               id: expect.anything(),
+              dbid: expect.anything(),
               username: expect.anything(),
               bits: expect.anything(),
               data: expect.anything(),
@@ -177,12 +189,13 @@ describe("IShare", function () {
               iv: expect.anything()
             });
             expect(eshare.id).toBe(1);
+            expect(eshare.dbid).toBe("9c9b8361-10e9-4ffc-ab85-93c88a696e5e");
             expect(eshare.username).toBe("user1");
             expect(eshare.bits).toBe(8);
             expect(eshare.data).toBe("encrypteddata");
             expect(eshare.iv).toBe("aaaaaaaaa");
 
-          case 12:
+          case 13:
           case "end":
             return _context3.stop();
         }
@@ -212,17 +225,19 @@ describe("IShare", function () {
             ishare2 = _context4.sent;
             expect(ishare2).toMatchObject({
               id: expect.anything(),
+              dbid: expect.anything(),
               bits: expect.anything(),
               data: expect.anything(),
               salt: expect.anything(),
               iv: expect.anything()
             });
             expect(ishare2.id).toBe(1);
+            expect(ishare.dbid).toBe("9c9b8361-10e9-4ffc-ab85-93c88a696e5e");
             expect(ishare2.bits).toBe(8);
             expect(ishare2.data).toBe("encrypteddata");
             expect(ishare2.iv).toBe("aaaaaaaaa");
 
-          case 11:
+          case 12:
           case "end":
             return _context4.stop();
         }
@@ -246,14 +261,16 @@ describe("IShare", function () {
             ushare = _context5.sent;
             expect(ushare).toMatchObject({
               id: expect.anything(),
+              dbid: expect.anything(),
               bits: expect.anything(),
               data: expect.anything()
             });
             expect(ushare.id).toBe(1);
+            expect(ushare.dbid).toBe("9c9b8361-10e9-4ffc-ab85-93c88a696e5e");
             expect(ushare.bits).toBe(8);
             expect(ushare.data).toBe("801649ec44b6e582da82be0c281d8bc9708");
 
-          case 9:
+          case 10:
           case "end":
             return _context5.stop();
         }
@@ -264,16 +281,18 @@ describe("IShare", function () {
 describe("EShare", function () {
   var shareStarter = {
     id: 1,
+    dbid: "9c9b8361-10e9-4ffc-ab85-93c88a696e5e",
     data: "encrypteddata",
     bits: 8,
     salt: "abcdef",
     iv: "aaaaaaaaa",
     username: "user1"
   };
-  var shareJSON = '{"id":1,"data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","username":"user1","type":"encrypted"}';
+  var shareJSON = '{"id":1,"dbid":"9c9b8361-10e9-4ffc-ab85-93c88a696e5e","data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","username":"user1","type":"encrypted"}';
   test('creating from data works', function () {
     var eshare = new _Shares["default"].EShare(shareStarter);
     expect(eshare.id).toBe(1);
+    expect(eshare.dbid).toBe("9c9b8361-10e9-4ffc-ab85-93c88a696e5e");
     expect(eshare.data).toBe("encrypteddata");
     expect(eshare.bits).toBe(8);
     expect(eshare.salt).toBe("abcdef");
@@ -283,6 +302,7 @@ describe("EShare", function () {
   test('creating from JSON works', function () {
     var eshare = new _Shares["default"].EShare(shareJSON);
     expect(eshare.id).toBe(1);
+    expect(eshare.dbid).toBe("9c9b8361-10e9-4ffc-ab85-93c88a696e5e");
     expect(eshare.data).toBe("encrypteddata");
     expect(eshare.bits).toBe(8);
     expect(eshare.salt).toBe("abcdef");
@@ -317,6 +337,7 @@ describe("EShare", function () {
             eshare2 = _context6.sent;
             expect(eshare2).toMatchObject({
               id: expect.anything(),
+              dbid: expect.anything(),
               username: expect.anything(),
               bits: expect.anything(),
               data: expect.anything(),
@@ -324,13 +345,14 @@ describe("EShare", function () {
               iv: expect.anything()
             });
             expect(eshare.id).toBe(1);
+            expect(eshare.dbid).toBe("9c9b8361-10e9-4ffc-ab85-93c88a696e5e");
             expect(eshare.data).toBe("encrypteddata");
             expect(eshare.bits).toBe(8);
             expect(eshare.salt).toBe("abcdef");
             expect(eshare.iv).toBe("aaaaaaaaa");
             expect(eshare.username).toBe("user1");
 
-          case 13:
+          case 14:
           case "end":
             return _context6.stop();
         }
@@ -354,14 +376,16 @@ describe("EShare", function () {
             ushare = _context7.sent;
             expect(ushare).toMatchObject({
               id: expect.anything(),
+              dbid: expect.anything(),
               bits: expect.anything(),
               data: expect.anything()
             });
             expect(ushare.id).toBe(1);
+            expect(ushare.dbid).toBe("9c9b8361-10e9-4ffc-ab85-93c88a696e5e");
             expect(ushare.bits).toBe(8);
             expect(ushare.data).toBe("801649ec44b6e582da82be0c281d8bc9708");
 
-          case 9:
+          case 10:
           case "end":
             return _context7.stop();
         }

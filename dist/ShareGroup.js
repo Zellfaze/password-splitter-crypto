@@ -9,11 +9,15 @@ var _CryptoUtils = _interopRequireDefault(require("./CryptoUtils.js"));
 
 var _Shares = _interopRequireDefault(require("./Shares.js"));
 
+var _uuid = require("uuid");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -22,24 +26,45 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 var UShareGroup = /*#__PURE__*/function () {
+  // constructor([shares])
+  // constructor(json)
+  // construct({dbid, [shares]})
   function UShareGroup(shares) {
     _classCallCheck(this, UShareGroup);
 
-    // If we were passed a string, let's try to evaluate it as JSON
-    // if it's not valid json, just let it throw
-    if (typeof shares === "string") {
+    var dbid;
+
+    if (_typeof(shares) === "object" && !Array.isArray(shares)) {
+      // If we were supplied with an object, extract the components
+      dbid = shares.dbid;
+      shares = shares.shares;
+    } else if (Array.isArray(shares)) {
+      // If we were supplied with an array generate a random db id (UUIDv4)
+      dbid = (0, _uuid.v4)();
+    } else if (typeof shares === "string") {
+      // If we were passed a string, let's try to evaluate it as JSON
+      // if it's not valid json, just let it throw
       var rawObj = JSON.parse(shares);
-      shares = rawObj.shares.map(function (share) {
-        return new _Shares["default"].UShare(share);
-      });
-    } // Get a list of all of the IDs
+      shares = rawObj.shares;
+      dbid = rawObj.dbid;
+    } else {
+      throw new Error("First argument must be an object, an array, or valid JSON");
+    } // Ensure that all shares are shares
 
 
-    var shareIDs = shares.map(function (share) {
-      if (share.id === undefined) {
-        throw new Error("All array members must be a share");
+    shares = shares.map(function (share) {
+      if (!(share instanceof _Shares["default"].UShare)) {
+        try {
+          return new _Shares["default"].UShare(share);
+        } catch (err) {
+          throw new Error("All array members must be a share");
+        }
       }
 
+      return share;
+    }); // Get a list of all of the IDs
+
+    var shareIDs = shares.map(function (share) {
       return share.id;
     }); // Ensure that each only appears in the list once
 
@@ -52,6 +77,7 @@ var UShareGroup = /*#__PURE__*/function () {
     }
 
     this.shares = shares;
+    this.dbid = dbid;
   }
 
   _createClass(UShareGroup, [{
@@ -140,6 +166,7 @@ var UShareGroup = /*#__PURE__*/function () {
     key: "toJSON",
     value: function toJSON() {
       return {
+        dbid: this.dbid,
         shares: this.shares,
         type: "plain"
       };
@@ -153,21 +180,39 @@ var IShareGroup = /*#__PURE__*/function () {
   function IShareGroup(shares) {
     _classCallCheck(this, IShareGroup);
 
-    // If we were passed a string, let's try to evaluate it as JSON
-    // if it's not valid json, just let it throw
-    if (typeof shares === "string") {
+    var dbid;
+
+    if (_typeof(shares) === "object" && !Array.isArray(shares)) {
+      // If we were supplied with an object, extract the components
+      dbid = shares.dbid;
+      shares = shares.shares;
+    } else if (Array.isArray(shares)) {
+      // If we were supplied with an array generate a random db id (UUIDv4)
+      dbid = (0, _uuid.v4)();
+    } else if (typeof shares === "string") {
+      // If we were passed a string, let's try to evaluate it as JSON
+      // if it's not valid json, just let it throw
       var rawObj = JSON.parse(shares);
-      shares = rawObj.shares.map(function (share) {
-        return new _Shares["default"].IShare(share);
-      });
-    } // Get a list of all of the IDs
+      shares = rawObj.shares;
+      dbid = rawObj.dbid;
+    } else {
+      throw new Error("First argument must be an object, an array, or valid JSON");
+    } // Ensure that all shares are shares
 
 
-    var shareIDs = shares.map(function (share) {
-      if (share.id === undefined) {
-        throw new Error("All array members must be a share");
+    shares = shares.map(function (share) {
+      if (!(share instanceof _Shares["default"].IShare)) {
+        try {
+          return new _Shares["default"].IShare(share);
+        } catch (err) {
+          throw new Error("All array members must be a share");
+        }
       }
 
+      return share;
+    }); // Get a list of all of the IDs
+
+    var shareIDs = shares.map(function (share) {
       return share.id;
     }); // Ensure that each only appears in the list once
 
@@ -180,6 +225,7 @@ var IShareGroup = /*#__PURE__*/function () {
     }
 
     this.shares = shares;
+    this.dbid = dbid;
   }
 
   _createClass(IShareGroup, [{
@@ -278,6 +324,7 @@ var IShareGroup = /*#__PURE__*/function () {
     key: "toJSON",
     value: function toJSON() {
       return {
+        dbid: this.dbid,
         shares: this.shares,
         type: "invite"
       };
@@ -291,21 +338,39 @@ var EShareGroup = /*#__PURE__*/function () {
   function EShareGroup(shares) {
     _classCallCheck(this, EShareGroup);
 
-    // If we were passed a string, let's try to evaluate it as JSON
-    // if it's not valid json, just let it throw
-    if (typeof shares === "string") {
+    var dbid;
+
+    if (_typeof(shares) === "object" && !Array.isArray(shares)) {
+      // If we were supplied with an object, extract the components
+      dbid = shares.dbid;
+      shares = shares.shares;
+    } else if (Array.isArray(shares)) {
+      // If we were supplied with an array generate a random db id (UUIDv4)
+      dbid = (0, _uuid.v4)();
+    } else if (typeof shares === "string") {
+      // If we were passed a string, let's try to evaluate it as JSON
+      // if it's not valid json, just let it throw
       var rawObj = JSON.parse(shares);
-      shares = rawObj.shares.map(function (share) {
-        return new _Shares["default"].EShare(share);
-      });
-    } // Get a list of all of the IDs
+      shares = rawObj.shares;
+      dbid = rawObj.dbid;
+    } else {
+      throw new Error("First argument must be an object, an array, or valid JSON");
+    } // Ensure that all shares are shares
 
 
-    var shareIDs = shares.map(function (share) {
-      if (share.id === undefined) {
-        throw new Error("All array members must be a share");
+    shares = shares.map(function (share) {
+      if (!(share instanceof _Shares["default"].EShare)) {
+        try {
+          return new _Shares["default"].EShare(share);
+        } catch (err) {
+          throw new Error("All array members must be a share");
+        }
       }
 
+      return share;
+    }); // Get a list of all of the IDs
+
+    var shareIDs = shares.map(function (share) {
       return share.id;
     }); // Ensure that each only appears in the list once
 
@@ -318,6 +383,7 @@ var EShareGroup = /*#__PURE__*/function () {
     }
 
     this.shares = shares;
+    this.dbid = dbid;
   }
 
   _createClass(EShareGroup, [{
@@ -406,6 +472,7 @@ var EShareGroup = /*#__PURE__*/function () {
     key: "toJSON",
     value: function toJSON() {
       return {
+        dbid: this.dbid,
         shares: this.shares,
         type: "encrypted"
       };
@@ -422,15 +489,15 @@ function createShareGroupFromRaw(rawObj) {
 
   switch (rawObj.type) {
     case "plain":
-      return new UShareGroup(rawObj.shares);
+      return new UShareGroup(rawObj);
       break;
 
     case "invite":
-      return new IShareGroup(rawObj.shares);
+      return new IShareGroup(rawObj);
       break;
 
     case "encrypted":
-      return new EShareGroup(rawObj.shares);
+      return new EShareGroup(rawObj);
       break;
 
     default:

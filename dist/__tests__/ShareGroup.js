@@ -15,41 +15,43 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // TODO: Mock Shares instead of CryptoUtils to eliminate dependency
 // on Shares being correct
 describe("UShareGroup", function () {
-  test("creating from data works", function () {
-    // Setup some UShare objects
-    var shareStarter = new _Shares["default"].UShare({
-      id: 1,
-      data: "801649ec44b6e582da82be0c281d8bc9708",
-      bits: 8
-    });
-    var shareStarter2 = new _Shares["default"].UShare({
-      id: 2,
-      data: "801649ec44b6e582da82be0c281d8bc9708",
-      bits: 8
-    }); // Create our ShareGroup
+  // Setup some UShare objects
+  var shareStarter = new _Shares["default"].UShare({
+    id: 1,
+    dbid: "9c9b8361-10e9-4ffc-ab85-93c88a696e5e",
+    data: "801649ec44b6e582da82be0c281d8bc9708",
+    bits: 8
+  });
+  var shareStarter2 = new _Shares["default"].UShare({
+    id: 2,
+    dbid: "b38dfa1f-6229-4fd7-b258-91dc74e74259",
+    data: "802c8219596dcb05a4e5641998aadca338c",
+    bits: 8
+  }); // Mock some functions
 
+  _CryptoUtils["default"].aesEncrypt = jest.fn(function (data, hash) {
+    return {
+      data: "encrypteddata",
+      iv: "aaaaaaaaa"
+    };
+  });
+  _CryptoUtils["default"].aesDecrypt = jest.fn(function (ciphertext, hash, iv) {
+    return "801649ec44b6e582da82be0c281d8bc9708";
+  }); // Setup JSON
+
+  var shareJSON = '{"dbid":"450e6f1f-64d7-4956-86b8-493a533296d7","shares":[{"id":1,"dbid":"9c9b8361-10e9-4ffc-ab85-93c88a696e5e","data":"801649ec44b6e582da82be0c281d8bc9708","bits":8},{"id":2,"dbid":"b38dfa1f-6229-4fd7-b258-91dc74e74259","data":"802c8219596dcb05a4e5641998aadca338c","bits":8}],"type":"plain"}';
+  test("creating from data works", function () {
+    // Create our ShareGroup
     var usharegroup = new _ShareGroup["default"].UShareGroup([shareStarter, shareStarter2]);
     expect(usharegroup.shares[0]).toMatchObject(shareStarter);
     expect(usharegroup.shares[1]).toMatchObject(shareStarter2);
   });
   test("creating from JSON works", function () {
-    // Setup some UShare objects
-    var shareStarter = new _Shares["default"].UShare({
-      id: 1,
-      data: "801649ec44b6e582da82be0c281d8bc9708",
-      bits: 8
-    });
-    var shareStarter2 = new _Shares["default"].UShare({
-      id: 2,
-      data: "801649ec44b6e582da82be0c281d8bc9708",
-      bits: 8
-    }); // Setup JSON
-
-    var shareJSON = '{"shares":[{"id":1,"data":"801649ec44b6e582da82be0c281d8bc9708","bits":8,"type":"plain"},{"id":2,"data":"801649ec44b6e582da82be0c281d8bc9708","bits":8,"type":"plain"}],"type":"plain"}'; // Create our ShareGroup
-
+    // Create our ShareGroup
     var usharegroup = new _ShareGroup["default"].UShareGroup(shareJSON);
     expect(usharegroup.shares[0]).toMatchObject(shareStarter);
     expect(usharegroup.shares[1]).toMatchObject(shareStarter2);
+    expect(usharegroup.dbid).toBe("450e6f1f-64d7-4956-86b8-493a533296d7");
   });
   test("passing invalid objects throws", function () {
     // Create our ShareGroup
@@ -64,26 +66,11 @@ describe("UShareGroup", function () {
     expect(usharegroup).toThrowError("All array members must be a share");
   });
   test("adding a new share works", function () {
-    var shareStarter = new _Shares["default"].UShare({
-      id: 1,
-      data: "801649ec44b6e582da82be0c281d8bc9708",
-      bits: 8
-    });
-    var shareStarter2 = new _Shares["default"].UShare({
-      id: 2,
-      data: "801649ec44b6e582da82be0c281d8bc9708",
-      bits: 8
-    });
     var usharegroup = new _ShareGroup["default"].UShareGroup([shareStarter]);
     usharegroup.addShare(shareStarter2);
     expect(usharegroup.shares[1]).toMatchObject(shareStarter2);
   });
   test("adding a share with a duplicate ID throws", function () {
-    var shareStarter = new _Shares["default"].UShare({
-      id: 1,
-      data: "801649ec44b6e582da82be0c281d8bc9708",
-      bits: 8
-    });
     var usharegroup = new _ShareGroup["default"].UShareGroup([shareStarter]);
 
     var addShare = function addShare() {
@@ -93,34 +80,20 @@ describe("UShareGroup", function () {
     expect(addShare).toThrowError("Group already includes a share with ID 1");
   });
   test("encrypt() produces an EShareGroup", /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var shareStarter, usharegroup, esharegroup;
+    var usharegroup, esharegroup;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            _CryptoUtils["default"].aesEncrypt = jest.fn(function (data, hash) {
-              return {
-                data: "encrypteddata",
-                iv: "aaaaaaaaa"
-              };
-            });
-            _CryptoUtils["default"].aesDecrypt = jest.fn(function (ciphertext, hash, iv) {
-              return "801649ec44b6e582da82be0c281d8bc9708";
-            });
-            shareStarter = new _Shares["default"].UShare({
-              id: 1,
-              data: "801649ec44b6e582da82be0c281d8bc9708",
-              bits: 8
-            });
             usharegroup = new _ShareGroup["default"].UShareGroup([shareStarter]);
-            _context.next = 6;
+            _context.next = 3;
             return usharegroup.encrypt("user1", "pass1");
 
-          case 6:
+          case 3:
             esharegroup = _context.sent;
             expect(esharegroup).toBeInstanceOf(_ShareGroup["default"].EShareGroup);
 
-          case 8:
+          case 5:
           case "end":
             return _context.stop();
         }
@@ -128,34 +101,20 @@ describe("UShareGroup", function () {
     }, _callee);
   })));
   test("invite() produces an IShareGroup", /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-    var shareStarter, usharegroup, isharegroup;
+    var usharegroup, isharegroup;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            _CryptoUtils["default"].aesEncrypt = jest.fn(function (data, hash) {
-              return {
-                data: "encrypteddata",
-                iv: "aaaaaaaaa"
-              };
-            });
-            _CryptoUtils["default"].aesDecrypt = jest.fn(function (ciphertext, hash, iv) {
-              return "801649ec44b6e582da82be0c281d8bc9708";
-            });
-            shareStarter = new _Shares["default"].UShare({
-              id: 1,
-              data: "801649ec44b6e582da82be0c281d8bc9708",
-              bits: 8
-            });
             usharegroup = new _ShareGroup["default"].UShareGroup([shareStarter]);
-            _context2.next = 6;
+            _context2.next = 3;
             return usharegroup.invite("pass1");
 
-          case 6:
+          case 3:
             isharegroup = _context2.sent;
             expect(isharegroup).toBeInstanceOf(_ShareGroup["default"].IShareGroup);
 
-          case 8:
+          case 5:
           case "end":
             return _context2.stop();
         }
@@ -164,46 +123,43 @@ describe("UShareGroup", function () {
   })));
 });
 describe("IShareGroup", function () {
-  test("creating from data works", function () {
-    // Setup some IShare objects
-    var shareStarter = new _Shares["default"].IShare({
-      id: 1,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa"
-    });
-    var shareStarter2 = new _Shares["default"].IShare({
-      id: 2,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa"
-    }); // Create our ShareGroup
+  // Setup some IShare objects
+  var shareStarter = new _Shares["default"].IShare({
+    id: 1,
+    dbid: "9c9b8361-10e9-4ffc-ab85-93c88a696e5e",
+    data: "encrypteddata",
+    bits: 8,
+    salt: "abcdef",
+    iv: "aaaaaaaaa"
+  });
+  var shareStarter2 = new _Shares["default"].IShare({
+    id: 2,
+    dbid: "b38dfa1f-6229-4fd7-b258-91dc74e74259",
+    data: "encrypteddata",
+    bits: 8,
+    salt: "abcdef",
+    iv: "aaaaaaaaa"
+  }); // Setup JSON
 
+  var shareJSON = '{"shares":[{"id":1,"dbid":"9c9b8361-10e9-4ffc-ab85-93c88a696e5e","data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","type":"invite"},{"id":2,"dbid":"b38dfa1f-6229-4fd7-b258-91dc74e74259","data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","type":"invite"}],"type":"invite"}'; // Mock some functions
+
+  _CryptoUtils["default"].aesEncrypt = jest.fn(function (data, hash) {
+    return {
+      data: "encrypteddata",
+      iv: "aaaaaaaaa"
+    };
+  });
+  _CryptoUtils["default"].aesDecrypt = jest.fn(function (ciphertext, hash, iv) {
+    return "801649ec44b6e582da82be0c281d8bc9708";
+  });
+  test("creating from data works", function () {
+    // Create our ShareGroup
     var isharegroup = new _ShareGroup["default"].IShareGroup([shareStarter, shareStarter2]);
     expect(isharegroup.shares[0]).toMatchObject(shareStarter);
     expect(isharegroup.shares[1]).toMatchObject(shareStarter2);
   });
   test("creating from JSON works", function () {
-    // Setup some IShare objects
-    var shareStarter = new _Shares["default"].IShare({
-      id: 1,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa"
-    });
-    var shareStarter2 = new _Shares["default"].IShare({
-      id: 2,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa"
-    }); // Setup JSON
-
-    var shareJSON = '{"shares":[{"id":1,"data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","type":"invite"},{"id":2,"data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","type":"invite"}],"type":"invite"}'; // Create our ShareGroup
-
+    // Create our ShareGroup
     var isharegroup = new _ShareGroup["default"].IShareGroup(shareJSON);
     expect(isharegroup.shares[0]).toMatchObject(shareStarter);
     expect(isharegroup.shares[1]).toMatchObject(shareStarter2);
@@ -221,32 +177,11 @@ describe("IShareGroup", function () {
     expect(isharegroup).toThrowError("All array members must be a share");
   });
   test("adding a new share works", function () {
-    var shareStarter = new _Shares["default"].IShare({
-      id: 1,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa"
-    });
-    var shareStarter2 = new _Shares["default"].IShare({
-      id: 2,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa"
-    });
     var isharegroup = new _ShareGroup["default"].IShareGroup([shareStarter]);
     isharegroup.addShare(shareStarter2);
     expect(isharegroup.shares[1]).toMatchObject(shareStarter2);
   });
   test("adding a share with a duplicate ID throws", function () {
-    var shareStarter = new _Shares["default"].IShare({
-      id: 1,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa"
-    });
     var isharegroup = new _ShareGroup["default"].IShareGroup([shareStarter]);
 
     var addShare = function addShare() {
@@ -256,36 +191,20 @@ describe("IShareGroup", function () {
     expect(addShare).toThrowError("Group already includes a share with ID 1");
   });
   test("decrypt() produces an UShareGroup", /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-    var shareStarter, isharegroup, usharegroup;
+    var isharegroup, usharegroup;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
-            _CryptoUtils["default"].aesEncrypt = jest.fn(function (data, hash) {
-              return {
-                data: "encrypteddata",
-                iv: "aaaaaaaaa"
-              };
-            });
-            _CryptoUtils["default"].aesDecrypt = jest.fn(function (ciphertext, hash, iv) {
-              return "801649ec44b6e582da82be0c281d8bc9708";
-            });
-            shareStarter = new _Shares["default"].IShare({
-              id: 1,
-              data: "encrypteddata",
-              bits: 8,
-              salt: "abcdef",
-              iv: "aaaaaaaaa"
-            });
             isharegroup = new _ShareGroup["default"].IShareGroup([shareStarter]);
-            _context3.next = 6;
+            _context3.next = 3;
             return isharegroup.decrypt("pass1");
 
-          case 6:
+          case 3:
             usharegroup = _context3.sent;
             expect(usharegroup).toBeInstanceOf(_ShareGroup["default"].UShareGroup);
 
-          case 8:
+          case 5:
           case "end":
             return _context3.stop();
         }
@@ -293,36 +212,20 @@ describe("IShareGroup", function () {
     }, _callee3);
   })));
   test("encrypt() produces an EShareGroup", /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
-    var shareStarter, isharegroup, esharegroup;
+    var isharegroup, esharegroup;
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
           case 0:
-            _CryptoUtils["default"].aesEncrypt = jest.fn(function (data, hash) {
-              return {
-                data: "encrypteddata",
-                iv: "aaaaaaaaa"
-              };
-            });
-            _CryptoUtils["default"].aesDecrypt = jest.fn(function (ciphertext, hash, iv) {
-              return "801649ec44b6e582da82be0c281d8bc9708";
-            });
-            shareStarter = new _Shares["default"].IShare({
-              id: 1,
-              data: "encrypteddata",
-              bits: 8,
-              salt: "abcdef",
-              iv: "aaaaaaaaa"
-            });
             isharegroup = new _ShareGroup["default"].IShareGroup([shareStarter]);
-            _context4.next = 6;
+            _context4.next = 3;
             return isharegroup.encrypt("invitepass", "user1", "pass1");
 
-          case 6:
+          case 3:
             esharegroup = _context4.sent;
             expect(esharegroup).toBeInstanceOf(_ShareGroup["default"].EShareGroup);
 
-          case 8:
+          case 5:
           case "end":
             return _context4.stop();
         }
@@ -330,36 +233,20 @@ describe("IShareGroup", function () {
     }, _callee4);
   })));
   test("changePassword() produces an IShareGroup", /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
-    var shareStarter, isharegroup, isharegroup2;
+    var isharegroup, isharegroup2;
     return regeneratorRuntime.wrap(function _callee5$(_context5) {
       while (1) {
         switch (_context5.prev = _context5.next) {
           case 0:
-            _CryptoUtils["default"].aesEncrypt = jest.fn(function (data, hash) {
-              return {
-                data: "encrypteddata",
-                iv: "aaaaaaaaa"
-              };
-            });
-            _CryptoUtils["default"].aesDecrypt = jest.fn(function (ciphertext, hash, iv) {
-              return "801649ec44b6e582da82be0c281d8bc9708";
-            });
-            shareStarter = new _Shares["default"].IShare({
-              id: 1,
-              data: "encrypteddata",
-              bits: 8,
-              salt: "abcdef",
-              iv: "aaaaaaaaa"
-            });
             isharegroup = new _ShareGroup["default"].IShareGroup([shareStarter]);
-            _context5.next = 6;
+            _context5.next = 3;
             return isharegroup.changePassword("oldpassword", "newpassword");
 
-          case 6:
+          case 3:
             isharegroup2 = _context5.sent;
             expect(isharegroup2).toBeInstanceOf(_ShareGroup["default"].IShareGroup);
 
-          case 8:
+          case 5:
           case "end":
             return _context5.stop();
         }
@@ -368,50 +255,45 @@ describe("IShareGroup", function () {
   })));
 });
 describe("EShareGroup", function () {
-  test("creating from data works", function () {
-    // Setup some UShare objects
-    var shareStarter = new _Shares["default"].EShare({
-      id: 1,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa",
-      username: "user1"
-    });
-    var shareStarter2 = new _Shares["default"].EShare({
-      id: 2,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa",
-      username: "user1"
-    }); // Create our ShareGroup
+  // Setup some EShare objects
+  var shareStarter = new _Shares["default"].EShare({
+    id: 1,
+    dbid: "9c9b8361-10e9-4ffc-ab85-93c88a696e5e",
+    data: "encrypteddata",
+    bits: 8,
+    salt: "abcdef",
+    iv: "aaaaaaaaa",
+    username: "user1"
+  });
+  var shareStarter2 = new _Shares["default"].EShare({
+    id: 2,
+    dbid: "b38dfa1f-6229-4fd7-b258-91dc74e74259",
+    data: "encrypteddata",
+    bits: 8,
+    salt: "abcdef",
+    iv: "aaaaaaaaa",
+    username: "user1"
+  }); // Setup JSON
 
+  var shareJSON = '{"shares":[{"id":1,"dbid":"9c9b8361-10e9-4ffc-ab85-93c88a696e5e","data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","username":"user1","type":"encrypted"},{"id":2,"dbid":"b38dfa1f-6229-4fd7-b258-91dc74e74259","data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","username":"user1","type":"encrypted"}],"type":"encrypted"}'; // Mock some functions
+
+  _CryptoUtils["default"].aesEncrypt = jest.fn(function (data, hash) {
+    return {
+      data: "encrypteddata",
+      iv: "aaaaaaaaa"
+    };
+  });
+  _CryptoUtils["default"].aesDecrypt = jest.fn(function (ciphertext, hash, iv) {
+    return "801649ec44b6e582da82be0c281d8bc9708";
+  });
+  test("creating from data works", function () {
+    // Create our ShareGroup
     var esharegroup = new _ShareGroup["default"].EShareGroup([shareStarter, shareStarter2]);
     expect(esharegroup.shares[0]).toMatchObject(shareStarter);
     expect(esharegroup.shares[1]).toMatchObject(shareStarter2);
   });
   test("creating from JSON works", function () {
-    // Setup some UShare objects
-    var shareStarter = new _Shares["default"].EShare({
-      id: 1,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa",
-      username: "user1"
-    });
-    var shareStarter2 = new _Shares["default"].EShare({
-      id: 2,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa",
-      username: "user1"
-    }); // Setup JSON
-
-    var shareJSON = '{"shares":[{"id":1,"data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","username":"user1","type":"encrypted"},{"id":2,"data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","username":"user1","type":"encrypted"}],"type":"encrypted"}'; // Create our ShareGroup
-
+    // Create our ShareGroup
     var esharegroup = new _ShareGroup["default"].EShareGroup(shareJSON);
     expect(esharegroup.shares[0]).toMatchObject(shareStarter);
     expect(esharegroup.shares[1]).toMatchObject(shareStarter2);
@@ -429,35 +311,11 @@ describe("EShareGroup", function () {
     expect(esharegroup).toThrowError("All array members must be a share");
   });
   test("adding a new share works", function () {
-    var shareStarter = new _Shares["default"].EShare({
-      id: 1,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa",
-      username: "user1"
-    });
-    var shareStarter2 = new _Shares["default"].EShare({
-      id: 2,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa",
-      username: "user1"
-    });
     var esharegroup = new _ShareGroup["default"].EShareGroup([shareStarter]);
     esharegroup.addShare(shareStarter2);
     expect(esharegroup.shares[1]).toMatchObject(shareStarter2);
   });
   test("adding a share with a duplicate ID throws", function () {
-    var shareStarter = new _Shares["default"].EShare({
-      id: 1,
-      data: "encrypteddata",
-      bits: 8,
-      salt: "abcdef",
-      iv: "aaaaaaaaa",
-      username: "user1"
-    });
     var esharegroup = new _ShareGroup["default"].EShareGroup([shareStarter]);
 
     var addShare = function addShare() {
@@ -467,37 +325,20 @@ describe("EShareGroup", function () {
     expect(addShare).toThrowError("Group already includes a share with ID 1");
   });
   test("decrypt() produces an UShareGroup", /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6() {
-    var shareStarter, esharegroup, usharegroup;
+    var esharegroup, usharegroup;
     return regeneratorRuntime.wrap(function _callee6$(_context6) {
       while (1) {
         switch (_context6.prev = _context6.next) {
           case 0:
-            _CryptoUtils["default"].aesEncrypt = jest.fn(function (data, hash) {
-              return {
-                data: "encrypteddata",
-                iv: "aaaaaaaaa"
-              };
-            });
-            _CryptoUtils["default"].aesDecrypt = jest.fn(function (ciphertext, hash, iv) {
-              return "801649ec44b6e582da82be0c281d8bc9708";
-            });
-            shareStarter = new _Shares["default"].EShare({
-              id: 1,
-              data: "encrypteddata",
-              bits: 8,
-              salt: "abcdef",
-              iv: "aaaaaaaaa",
-              username: "user1"
-            });
             esharegroup = new _ShareGroup["default"].EShareGroup([shareStarter]);
-            _context6.next = 6;
+            _context6.next = 3;
             return esharegroup.decrypt("pass1");
 
-          case 6:
+          case 3:
             usharegroup = _context6.sent;
             expect(usharegroup).toBeInstanceOf(_ShareGroup["default"].UShareGroup);
 
-          case 8:
+          case 5:
           case "end":
             return _context6.stop();
         }
@@ -505,37 +346,20 @@ describe("EShareGroup", function () {
     }, _callee6);
   })));
   test("changePassword() produces an EShareGroup", /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
-    var shareStarter, esharegroup, esharegroup2;
+    var esharegroup, esharegroup2;
     return regeneratorRuntime.wrap(function _callee7$(_context7) {
       while (1) {
         switch (_context7.prev = _context7.next) {
           case 0:
-            _CryptoUtils["default"].aesEncrypt = jest.fn(function (data, hash) {
-              return {
-                data: "encrypteddata",
-                iv: "aaaaaaaaa"
-              };
-            });
-            _CryptoUtils["default"].aesDecrypt = jest.fn(function (ciphertext, hash, iv) {
-              return "801649ec44b6e582da82be0c281d8bc9708";
-            });
-            shareStarter = new _Shares["default"].EShare({
-              id: 1,
-              data: "encrypteddata",
-              bits: 8,
-              salt: "abcdef",
-              iv: "aaaaaaaaa",
-              username: "user1"
-            });
             esharegroup = new _ShareGroup["default"].EShareGroup([shareStarter]);
-            _context7.next = 6;
+            _context7.next = 3;
             return esharegroup.changePassword("oldpassword", "newpassword");
 
-          case 6:
+          case 3:
             esharegroup2 = _context7.sent;
             expect(esharegroup2).toBeInstanceOf(_ShareGroup["default"].EShareGroup);
 
-          case 8:
+          case 5:
           case "end":
             return _context7.stop();
         }
@@ -545,7 +369,7 @@ describe("EShareGroup", function () {
 });
 describe("createShareGroupFromRaw", function () {
   test("creates UShareGroup", function () {
-    var shareJSON = '{"shares":[{"id":1,"data":"801649ec44b6e582da82be0c281d8bc9708","bits":8,"type":"plain"},{"id":2,"data":"801649ec44b6e582da82be0c281d8bc9708","bits":8,"type":"plain"}],"type":"plain"}';
+    var shareJSON = '{"dbid":"450e6f1f-64d7-4956-86b8-493a533296d7","shares":[{"id":1,"dbid":"9c9b8361-10e9-4ffc-ab85-93c88a696e5e","data":"801649ec44b6e582da82be0c281d8bc9708","bits":8},{"id":2,"dbid":"b38dfa1f-6229-4fd7-b258-91dc74e74259","data":"802c8219596dcb05a4e5641998aadca338c","bits":8}],"type":"plain"}';
     var shareRaw = JSON.parse(shareJSON); // Check with JSON
 
     var sharegroup = _ShareGroup["default"].createShareGroupFromRaw(shareJSON);
@@ -557,7 +381,7 @@ describe("createShareGroupFromRaw", function () {
     expect(sharegroup2).toBeInstanceOf(_ShareGroup["default"].UShareGroup);
   });
   test("creates IShareGroup", function () {
-    var shareJSON = '{"shares":[{"id":1,"data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","type":"invite"},{"id":2,"data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","type":"invite"}],"type":"invite"}';
+    var shareJSON = '{"shares":[{"id":1,"dbid":"9c9b8361-10e9-4ffc-ab85-93c88a696e5e","data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","type":"invite"},{"id":2,"dbid":"b38dfa1f-6229-4fd7-b258-91dc74e74259","data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","type":"invite"}],"type":"invite"}';
     var shareRaw = JSON.parse(shareJSON); // Check with JSON
 
     var sharegroup = _ShareGroup["default"].createShareGroupFromRaw(shareJSON);
@@ -569,7 +393,7 @@ describe("createShareGroupFromRaw", function () {
     expect(sharegroup2).toBeInstanceOf(_ShareGroup["default"].IShareGroup);
   });
   test("creates EShareGroup", function () {
-    var shareJSON = '{"shares":[{"id":1,"data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","username":"user1","type":"encrypted"},{"id":2,"data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","username":"user1","type":"encrypted"}],"type":"encrypted"}';
+    var shareJSON = '{"shares":[{"id":1,"dbid":"9c9b8361-10e9-4ffc-ab85-93c88a696e5e","data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","username":"user1","type":"encrypted"},{"id":2,"dbid":"b38dfa1f-6229-4fd7-b258-91dc74e74259","data":"encrypteddata","bits":8,"salt":"abcdef","iv":"aaaaaaaaa","username":"user1","type":"encrypted"}],"type":"encrypted"}';
     var shareRaw = JSON.parse(shareJSON); // Check with JSON
 
     var sharegroup = _ShareGroup["default"].createShareGroupFromRaw(shareJSON);

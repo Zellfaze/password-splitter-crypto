@@ -11,6 +11,8 @@ var _Shares = _interopRequireDefault(require("./Shares.js"));
 
 var _ShareGroup = _interopRequireDefault(require("./ShareGroup.js"));
 
+var _uuid = require("uuid");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -21,27 +23,39 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 var ESharePackage = /*#__PURE__*/function () {
   //construct(json)
-  //construct([shares], size, quorum)
-  //construct([shares], size, quorum, name, description)
+  //construct([shares], {dbid!, size!, quorum!, name?, description?})
   function ESharePackage(shareGroups) {
-    var size = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-    var quorum = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-    var name = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-    var description = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
     _classCallCheck(this, ESharePackage);
 
-    // If we were passed a string, let's try to evaluate it as JSON
+    var _options$dbid = options.dbid,
+        dbid = _options$dbid === void 0 ? null : _options$dbid,
+        _options$size = options.size,
+        size = _options$size === void 0 ? null : _options$size,
+        _options$quorum = options.quorum,
+        quorum = _options$quorum === void 0 ? null : _options$quorum,
+        _options$name = options.name,
+        name = _options$name === void 0 ? null : _options$name,
+        _options$description = options.description,
+        description = _options$description === void 0 ? null : _options$description; // If we were passed a string, let's try to evaluate it as JSON
     // if it's not valid json, just let it throw
+
     if (typeof shareGroups === "string") {
       var rawObj = JSON.parse(shareGroups);
       shareGroups = rawObj.shareGroups.map(function (sharegroup) {
         return _ShareGroup["default"].createShareGroupFromRaw(sharegroup);
       });
+      dbid = rawObj.dbid;
       size = rawObj.size;
       quorum = rawObj.quorum;
       name = rawObj.name;
       description = rawObj.description;
+    } //Make sure that we were given a dbid
+
+
+    if (dbid === null) {
+      throw new Error("A dbid must be supplied!");
     } // Make sure that we were given a size and a quorum
 
 
@@ -75,6 +89,7 @@ var ESharePackage = /*#__PURE__*/function () {
     } // Everything is in order, save the properties
 
 
+    this.dbid = dbid;
     this.shareGroups = shareGroups;
     this.size = size;
     this.quorum = quorum;
@@ -101,11 +116,7 @@ var ESharePackage = /*#__PURE__*/function () {
 
       var shareArray = [].concat.apply([], this.shareGroups.map(function (sharegroup) {
         return sharegroup.shares;
-      })); // Extract data from each UShare object NOTE: This might not be needed!
-
-      var dataArray = shareArray.map(function (share) {
-        return share.data;
-      }); // Recombine the shares
+      })); // Recombine the shares
 
       var plaintext = _CryptoUtils["default"].recombineShares(shareArray); // Try to parse the result as JSON
       //  if that fails throw, shares corrupted
@@ -126,13 +137,18 @@ var ESharePackage = /*#__PURE__*/function () {
       // We are going to use the name and description that are contained in the recovered object
 
 
-      return new USharePackage(recoveredObj.plaintext, recoveredObj.name, recoveredObj.description);
+      return new USharePackage(recoveredObj.plaintext, {
+        dbid: this.dbid,
+        name: recoveredObj.name,
+        description: recoveredObj.description
+      });
     }
   }, {
     key: "toJSON",
     value: function toJSON() {
       return {
         shareGroups: this.shareGroups,
+        dbid: this.dbid,
         size: this.size,
         quorum: this.quorum,
         name: this.name,
@@ -145,11 +161,19 @@ var ESharePackage = /*#__PURE__*/function () {
 }();
 
 var USharePackage = /*#__PURE__*/function () {
+  //construct(json)
+  //construct(plaintext, {dbid?, name?, description?})
   function USharePackage(plaintext) {
-    var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-    var description = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
     _classCallCheck(this, USharePackage);
+
+    var _options$dbid2 = options.dbid,
+        dbid = _options$dbid2 === void 0 ? null : _options$dbid2,
+        _options$name2 = options.name,
+        name = _options$name2 === void 0 ? null : _options$name2,
+        _options$description2 = options.description,
+        description = _options$description2 === void 0 ? null : _options$description2;
 
     try {
       var rawObj = JSON.parse(plaintext);
@@ -166,11 +190,21 @@ var USharePackage = /*#__PURE__*/function () {
         throw new Error("Invalid json");
       }
 
+      if (rawObj.dbid === undefined) {
+        throw new Error("Invalid json");
+      }
+
+      dbid = rawObj.dbid;
       plaintext = rawObj.plaintext;
       name = rawObj.name;
       description = rawObj.description;
     } catch (err) {} // If there was any errors, assume it wasn't json
     finally {
+      if (dbid === null) {
+        dbid = (0, _uuid.v4)();
+      }
+
+      this.dbid = dbid;
       this.plaintext = plaintext;
       this.name = name;
       this.description = description;
@@ -182,11 +216,47 @@ var USharePackage = /*#__PURE__*/function () {
     value: function encrypt(size, quorum) {
       var shareGroupSizes = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
+      if (size === undefined) {
+        throw new Error("Size must be supplied!");
+      }
+
+      if (quorum === undefined) {
+        throw new Error("Quorum must be supplied!");
+      }
+
+      if (size < 2) {
+        throw new Error("Size must be at least 2!");
+      }
+
+      if (quorum < 2) {
+        throw new Error("Quorum must be at least 2!");
+      }
+
+      if (size > 255) {
+        throw new Error("Size must be at less than 255!");
+      }
+
+      if (quorum > 255) {
+        throw new Error("Quorum must be at less than 255!");
+      }
+
+      if (quorum > size) {
+        throw new Error("Size must be greater than quorum!");
+      }
+
       if (shareGroupSizes === null) {
         // Generate an array of size where each element is 1
         shareGroupSizes = Array.apply(null, Array(size)).map(function () {
           return 1;
         });
+      }
+
+      var shareGroupSizesTotal = shareGroupSizes.reduce(function (sum, next) {
+        return sum + next;
+      });
+
+      if (shareGroupSizesTotal !== size) {
+        throw new Error("Share groups must total to size!");
       } // Create the JSON to split
 
 
@@ -200,6 +270,8 @@ var USharePackage = /*#__PURE__*/function () {
 
 
       shares = shares.map(function (share) {
+        // Add a dbid
+        share.dbid = (0, _uuid.v4)();
         return new _Shares["default"].UShare(share);
       }); // Create the share groups
 
@@ -215,7 +287,13 @@ var USharePackage = /*#__PURE__*/function () {
         return new _ShareGroup["default"].UShareGroup(groupShares);
       }); // Create and return a ESharePackage
 
-      return new ESharePackage(shareGroups, size, quorum, this.name, this.description);
+      return new ESharePackage(shareGroups, {
+        dbid: this.dbid,
+        size: size,
+        quorum: quorum,
+        name: this.name,
+        description: this.description
+      });
     }
   }]);
 

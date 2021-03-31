@@ -33,7 +33,24 @@ var UShare = /*#__PURE__*/function () {
       input = JSON.parse(input);
     }
 
+    if (input.id === undefined) {
+      throw new Error("Share must have an ID");
+    }
+
+    if (input.dbid === undefined) {
+      throw new Error("Share must have a DB ID");
+    }
+
+    if (input.data === undefined) {
+      throw new Error("Share must have data");
+    }
+
+    if (input.bits === undefined) {
+      throw new Error("Share must have bits");
+    }
+
     this.id = input.id;
+    this.dbid = input.dbid;
     this.data = input.data;
     this.bits = input.bits;
   } // Returns a promise for an EShare object
@@ -61,6 +78,7 @@ var UShare = /*#__PURE__*/function () {
                 cryptObj = _context.sent;
                 return _context.abrupt("return", new EShare({
                   id: this.id,
+                  dbid: this.dbid,
                   username: username,
                   bits: this.bits,
                   data: cryptObj.data,
@@ -110,6 +128,7 @@ var UShare = /*#__PURE__*/function () {
                 cryptObj = _context2.sent;
                 return _context2.abrupt("return", new IShare({
                   id: this.id,
+                  dbid: this.dbid,
                   bits: this.bits,
                   data: cryptObj.data,
                   salt: hashObj.salt,
@@ -140,6 +159,7 @@ var UShare = /*#__PURE__*/function () {
     value: function toJSON() {
       return {
         id: this.id,
+        dbid: this.dbid,
         data: this.data,
         bits: this.bits,
         type: "plain"
@@ -160,7 +180,32 @@ var IShare = /*#__PURE__*/function () {
       input = JSON.parse(input);
     }
 
+    if (input.id === undefined) {
+      throw new Error("Share must have an ID");
+    }
+
+    if (input.dbid === undefined) {
+      throw new Error("Share must have a DB ID");
+    }
+
+    if (input.data === undefined) {
+      throw new Error("Share must have data");
+    }
+
+    if (input.bits === undefined) {
+      throw new Error("Share must have bits");
+    }
+
+    if (input.salt === undefined) {
+      throw new Error("Share must have salt");
+    }
+
+    if (input.iv === undefined) {
+      throw new Error("Share must have iv");
+    }
+
     this.id = input.id;
+    this.dbid = input.dbid;
     this.data = input.data;
     this.bits = input.bits;
     this.salt = input.salt;
@@ -265,6 +310,7 @@ var IShare = /*#__PURE__*/function () {
               case 9:
                 return _context5.abrupt("return", new UShare({
                   id: this.id,
+                  dbid: this.dbid,
                   bits: this.bits,
                   data: plaintext
                 }));
@@ -293,6 +339,7 @@ var IShare = /*#__PURE__*/function () {
     value: function toJSON() {
       return {
         id: this.id,
+        dbid: this.dbid,
         data: this.data,
         bits: this.bits,
         salt: this.salt,
@@ -315,7 +362,36 @@ var EShare = /*#__PURE__*/function () {
       input = JSON.parse(input);
     }
 
+    if (input.id === undefined) {
+      throw new Error("Share must have an ID");
+    }
+
+    if (input.dbid === undefined) {
+      throw new Error("Share must have a DB ID");
+    }
+
+    if (input.data === undefined) {
+      throw new Error("Share must have data");
+    }
+
+    if (input.bits === undefined) {
+      throw new Error("Share must have bits");
+    }
+
+    if (input.salt === undefined) {
+      throw new Error("Share must have salt");
+    }
+
+    if (input.iv === undefined) {
+      throw new Error("Share must have iv");
+    }
+
+    if (input.username === undefined) {
+      throw new Error("Share must have username");
+    }
+
     this.id = input.id;
+    this.dbid = input.dbid;
     this.data = input.data;
     this.bits = input.bits;
     this.salt = input.salt;
@@ -355,6 +431,7 @@ var EShare = /*#__PURE__*/function () {
               case 9:
                 return _context6.abrupt("return", new UShare({
                   id: this.id,
+                  dbid: this.dbid,
                   bits: this.bits,
                   data: plaintext
                 }));
@@ -414,6 +491,7 @@ var EShare = /*#__PURE__*/function () {
     value: function toJSON(key) {
       return {
         id: this.id,
+        dbid: this.dbid,
         data: this.data,
         bits: this.bits,
         salt: this.salt,
