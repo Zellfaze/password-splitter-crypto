@@ -1,23 +1,44 @@
 import CryptoUtils from './CryptoUtils.js';
 import Shares from './Shares.js';
+import { v4 as uuidv4 } from 'uuid';
 
 class UShareGroup {
+  // constructor([shares])
+  // constructor(json)
+  // construct({dbid, [shares]})
   constructor(shares) {
-    // If we were passed a string, let's try to evaluate it as JSON
-    // if it's not valid json, just let it throw
-    if (typeof shares === "string") {
+    let dbid;
+    if ((typeof shares === "object") && (!Array.isArray(shares))) {
+      // If we were supplied with an object, extract the components
+      dbid = shares.dbid;
+      shares = shares.shares;
+    } else if (Array.isArray(shares)) {
+      // If we were supplied with an array generate a random db id (UUIDv4)
+      dbid = uuidv4();
+    } else if (typeof shares === "string") {
+      // If we were passed a string, let's try to evaluate it as JSON
+      // if it's not valid json, just let it throw
       const rawObj = JSON.parse(shares);
-      shares = rawObj.shares.map( (share) => {
-        return new Shares.UShare(share);
-      });
+      shares = rawObj.shares;
+      dbid = rawObj.dbid;
+    } else {
+      throw new Error("First argument must be an object, an array, or valid JSON");
     }
+    
+    // Ensure that all shares are shares
+    shares = shares.map( (share) => {
+      if (!(share instanceof Shares.UShare)) {
+        try {
+          return new Shares.UShare(share);
+        } catch (err) {
+          throw new Error("All array members must be a share");
+        }
+      }
+      return share;
+    });
     
     // Get a list of all of the IDs
     let shareIDs = shares.map( (share) => {
-      if (share.id === undefined) {
-        throw new Error("All array members must be a share");
-      }
-      
       return share.id;
     });
     
@@ -31,6 +52,7 @@ class UShareGroup {
     }
     
     this.shares = shares;
+    this.dbid = dbid;
   }
   
   addShare(share) {
@@ -67,6 +89,7 @@ class UShareGroup {
   
   toJSON() {
     return {
+      dbid: this.dbid,
       shares: this.shares,
       type: "plain"
     }
@@ -75,21 +98,38 @@ class UShareGroup {
 
 class IShareGroup {
   constructor(shares) {
-    // If we were passed a string, let's try to evaluate it as JSON
-    // if it's not valid json, just let it throw
-    if (typeof shares === "string") {
+    let dbid;
+    if ((typeof shares === "object") && (!Array.isArray(shares))) {
+      // If we were supplied with an object, extract the components
+      dbid = shares.dbid;
+      shares = shares.shares;
+    } else if (Array.isArray(shares)) {
+      // If we were supplied with an array generate a random db id (UUIDv4)
+      dbid = uuidv4();
+    } else if (typeof shares === "string") {
+      // If we were passed a string, let's try to evaluate it as JSON
+      // if it's not valid json, just let it throw
       const rawObj = JSON.parse(shares);
-      shares = rawObj.shares.map( (share) => {
-        return new Shares.IShare(share);
-      });
+      shares = rawObj.shares;
+      dbid = rawObj.dbid;
+    } else {
+      throw new Error("First argument must be an object, an array, or valid JSON");
     }
+    
+    // Ensure that all shares are shares
+    shares = shares.map( (share) => {
+      if (!(share instanceof Shares.IShare)) {
+        try {
+          return new Shares.IShare(share);
+        } catch (err) {
+          throw new Error("All array members must be a share");
+        }
+      }
+      return share;
+    });
     
     // Get a list of all of the IDs
     let shareIDs = shares.map( (share) => {
-      if (share.id === undefined) {
-        throw new Error("All array members must be a share");
-      }
-      
       return share.id;
     });
     
@@ -103,6 +143,7 @@ class IShareGroup {
     }
     
     this.shares = shares;
+    this.dbid = dbid;
   }
   
   addShare(share) {
@@ -149,6 +190,7 @@ class IShareGroup {
   
   toJSON() {
     return {
+      dbid: this.dbid,
       shares: this.shares,
       type: "invite"
     }
@@ -157,21 +199,38 @@ class IShareGroup {
 
 class EShareGroup {
   constructor(shares) {
-    // If we were passed a string, let's try to evaluate it as JSON
-    // if it's not valid json, just let it throw
-    if (typeof shares === "string") {
+    let dbid;
+    if ((typeof shares === "object") && (!Array.isArray(shares))) {
+      // If we were supplied with an object, extract the components
+      dbid = shares.dbid;
+      shares = shares.shares;
+    } else if (Array.isArray(shares)) {
+      // If we were supplied with an array generate a random db id (UUIDv4)
+      dbid = uuidv4();
+    } else if (typeof shares === "string") {
+      // If we were passed a string, let's try to evaluate it as JSON
+      // if it's not valid json, just let it throw
       const rawObj = JSON.parse(shares);
-      shares = rawObj.shares.map( (share) => {
-        return new Shares.EShare(share);
-      });
+      shares = rawObj.shares;
+      dbid = rawObj.dbid;
+    } else {
+      throw new Error("First argument must be an object, an array, or valid JSON");
     }
+    
+    // Ensure that all shares are shares
+    shares = shares.map( (share) => {
+      if (!(share instanceof Shares.EShare)) {
+        try {
+          return new Shares.EShare(share);
+        } catch (err) {
+          throw new Error("All array members must be a share");
+        }
+      }
+      return share;
+    });
     
     // Get a list of all of the IDs
     let shareIDs = shares.map( (share) => {
-      if (share.id === undefined) {
-        throw new Error("All array members must be a share");
-      }
-      
       return share.id;
     });
     
@@ -185,6 +244,7 @@ class EShareGroup {
     }
     
     this.shares = shares;
+    this.dbid = dbid;
   }
   
   addShare(share) {
@@ -221,6 +281,7 @@ class EShareGroup {
   
   toJSON() {
     return {
+      dbid: this.dbid,
       shares: this.shares,
       type: "encrypted"
     }
@@ -234,13 +295,13 @@ function createShareGroupFromRaw(rawObj) {
   
   switch (rawObj.type) {
     case "plain":
-      return new UShareGroup(rawObj.shares);
+      return new UShareGroup(rawObj);
       break;
     case "invite":
-      return new IShareGroup(rawObj.shares);
+      return new IShareGroup(rawObj);
       break
     case "encrypted":
-      return new EShareGroup(rawObj.shares);
+      return new EShareGroup(rawObj);
       break;
     default:
       throw new Error("Not a valid ShareGroup");

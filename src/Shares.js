@@ -10,7 +10,13 @@ class UShare {
       input = JSON.parse(input);
     }
     
+    if (input.id === undefined) { throw new Error("Share must have an ID"); }
+    if (input.dbid === undefined) { throw new Error("Share must have a DB ID"); }
+    if (input.data === undefined) { throw new Error("Share must have data"); }
+    if (input.bits === undefined) { throw new Error("Share must have bits"); }
+    
     this.id = input.id;
+    this.dbid = input.dbid
     this.data = input.data;
     this.bits = input.bits;
   }
@@ -27,6 +33,7 @@ class UShare {
       // Then return an EShare object
       return new EShare({
         id: this.id,
+        dbid: this.dbid,
         username: username,
         bits: this.bits,
         data: cryptObj.data,
@@ -50,6 +57,7 @@ class UShare {
       // Then return an IShare object
       return new IShare({
         id: this.id,
+        dbid: this.dbid,
         bits: this.bits,
         data: cryptObj.data,
         salt: hashObj.salt,
@@ -63,6 +71,7 @@ class UShare {
   toJSON() {
     return {
       id: this.id,
+      dbid: this.dbid,
       data: this.data,
       bits: this.bits,
       type: "plain"
@@ -78,7 +87,15 @@ class IShare {
       input = JSON.parse(input);
     }
     
+    if (input.id === undefined) { throw new Error("Share must have an ID"); }
+    if (input.dbid === undefined) { throw new Error("Share must have a DB ID"); }
+    if (input.data === undefined) { throw new Error("Share must have data"); }
+    if (input.bits === undefined) { throw new Error("Share must have bits"); }
+    if (input.salt === undefined) { throw new Error("Share must have salt"); }
+    if (input.iv === undefined) { throw new Error("Share must have iv"); }
+    
     this.id = input.id;
+    this.dbid = input.dbid;
     this.data = input.data;
     this.bits = input.bits;
     this.salt = input.salt;
@@ -109,6 +126,7 @@ class IShare {
       
       return new UShare({
         id: this.id,
+        dbid: this.dbid,
         bits: this.bits,
         data: plaintext
       });
@@ -120,6 +138,7 @@ class IShare {
   toJSON() {
     return {
       id: this.id,
+      dbid: this.dbid,
       data: this.data,
       bits: this.bits,
       salt: this.salt,
@@ -137,7 +156,16 @@ class EShare {
       input = JSON.parse(input);
     }
     
+    if (input.id === undefined) { throw new Error("Share must have an ID"); }
+    if (input.dbid === undefined) { throw new Error("Share must have a DB ID"); }
+    if (input.data === undefined) { throw new Error("Share must have data"); }
+    if (input.bits === undefined) { throw new Error("Share must have bits"); }
+    if (input.salt === undefined) { throw new Error("Share must have salt"); }
+    if (input.iv === undefined) { throw new Error("Share must have iv"); }
+    if (input.username === undefined) { throw new Error("Share must have username"); }
+    
     this.id = input.id;
+    this.dbid = input.dbid;
     this.data = input.data;
     this.bits = input.bits;
     this.salt = input.salt;
@@ -157,6 +185,7 @@ class EShare {
       
       return new UShare({
         id: this.id,
+        dbid: this.dbid,
         bits: this.bits,
         data: plaintext
       });
@@ -174,6 +203,7 @@ class EShare {
   toJSON(key) {
     return {
       id: this.id,
+      dbid: this.dbid,
       data: this.data,
       bits: this.bits,
       salt: this.salt,

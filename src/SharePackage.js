@@ -1,12 +1,13 @@
 import CryptoUtils from './CryptoUtils.js';
 import Shares from './Shares.js';
 import ShareGroup from './ShareGroup.js';
+import { v4 as uuidv4 } from 'uuid';
 
 class ESharePackage {
   //construct(json)
-  //construct([shares], size, quorum)
-  //construct([shares], size, quorum, name, description)
-  constructor(shareGroups, size = null, quorum = null, name = null, description = null) {
+  //construct([shares], {dbid!, size!, quorum!, name?, description?})
+  constructor(shareGroups, options = {}) {
+    let {dbid = null, size = null, quorum = null, name = null, description = null} = options;
     // If we were passed a string, let's try to evaluate it as JSON
     // if it's not valid json, just let it throw
     if (typeof shareGroups === "string") {
@@ -15,10 +16,16 @@ class ESharePackage {
         return ShareGroup.createShareGroupFromRaw(sharegroup);
       });
       
+      dbid = rawObj.dbid;
       size = rawObj.size;
       quorum = rawObj.quorum;
       name = rawObj.name;
       description = rawObj.description;
+    }
+    
+    //Make sure that we were given a dbid
+    if (dbid === null) {
+      throw new Error("A dbid must be supplied!");
     }
     
     // Make sure that we were given a size and a quorum
@@ -52,6 +59,7 @@ class ESharePackage {
     }
     
     // Everything is in order, save the properties
+    this.dbid = dbid;
     this.shareGroups = shareGroups;
     this.size = size;
     this.quorum = quorum;
@@ -77,11 +85,6 @@ class ESharePackage {
       return sharegroup.shares;
     }));
     
-    // Extract data from each UShare object NOTE: This might not be needed!
-    const dataArray = shareArray.map( (share) => {
-      return share.data;
-    });
-    
     // Recombine the shares
     const plaintext = CryptoUtils.recombineShares(shareArray);
     
@@ -101,12 +104,13 @@ class ESharePackage {
     
     // Create a and return a USharePackage object
     // We are going to use the name and description that are contained in the recovered object
-    return new USharePackage(recoveredObj.plaintext, recoveredObj.name, recoveredObj.description);
+    return new USharePackage(recoveredObj.plaintext, {dbid: this.dbid, name: recoveredObj.name, description: recoveredObj.description});
   }
   
   toJSON() {
     return {
       shareGroups: this.shareGroups,
+      dbid: this.dbid,
       size: this.size,
       quorum: this.quorum,
       name: this.name,
@@ -116,19 +120,29 @@ class ESharePackage {
 }
 
 class USharePackage {
-  constructor(plaintext, name = null, description = null) {
+  //construct(json)
+  //construct(plaintext, {dbid?, name?, description?})
+  constructor(plaintext, options = {}) {
+    let {dbid = null, name = null, description = null} = options;
     try {
       let rawObj = JSON.parse(plaintext);
       
       if (rawObj.plaintext === undefined) { throw new Error("Invalid json"); }
       if (rawObj.name === undefined) { throw new Error("Invalid json"); }
       if (rawObj.description === undefined) { throw new Error("Invalid json"); }
+      if (rawObj.dbid === undefined) { throw new Error("Invalid json"); }
       
+      dbid = rawObj.dbid;
       plaintext = rawObj.plaintext;
       name = rawObj.name;
       description = rawObj.description;
     } catch(err) {} // If there was any errors, assume it wasn't json
     finally {
+      if (dbid === null) {
+        dbid = uuidv4();
+      }
+      
+      this.dbid = dbid;
       this.plaintext = plaintext;
       this.name = name;
       this.description = description;
@@ -136,10 +150,21 @@ class USharePackage {
   }
   
   encrypt(size, quorum, shareGroupSizes = null) {
+    if (size === undefined) { throw new Error("Size must be supplied!"); }
+    if (quorum === undefined) { throw new Error("Quorum must be supplied!"); }
+    if (size < 2) { throw new Error("Size must be at least 2!"); }
+    if (quorum < 2) { throw new Error("Quorum must be at least 2!"); }
+    if (size > 255) { throw new Error("Size must be at less than 255!"); }
+    if (quorum > 255) { throw new Error("Quorum must be at less than 255!"); }
+    if (quorum > size) { throw new Error("Size must be greater than quorum!"); }
+    
     if (shareGroupSizes === null) {
       // Generate an array of size where each element is 1
       shareGroupSizes = Array.apply(null, Array(size)).map(() => 1)
     }
+    
+    const shareGroupSizesTotal = shareGroupSizes.reduce(function(sum, next) { return sum + next });
+    if (shareGroupSizesTotal !== size) { throw new Error("Share groups must total to size!"); }
     
     // Create the JSON to split
     const json = JSON.stringify({
@@ -153,6 +178,8 @@ class USharePackage {
     
     // Create the share objects
     shares = shares.map( (share) => {
+      // Add a dbid
+      share.dbid = uuidv4();
       return new Shares.UShare(share);
     });
     
@@ -168,7 +195,7 @@ class USharePackage {
     });
     
     // Create and return a ESharePackage
-    return new ESharePackage(shareGroups, size, quorum, this.name, this.description);
+    return new ESharePackage(shareGroups, {dbid: this.dbid, size: size, quorum: quorum, name: this.name, description: this.description});
   }
 }
 
